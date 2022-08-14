@@ -20,7 +20,7 @@ class PackingSeenGoogleObjectsSeq(Task):
         self.object_names = self.get_object_names()
 
     def get_object_names(self):
-        return {
+        object_names = {
             'train': [
                 'alarm clock',
                 'android toy',
@@ -196,6 +196,9 @@ class PackingSeenGoogleObjectsSeq(Task):
                 'yoshi figure',
             ],
         }
+        train, val, test = object_names['train'], object_names['val'], object_names['test']
+        all_objects = list(set(train) | set(val) | set(test))
+        return {'train': all_objects, 'val': all_objects, 'test': all_objects}
 
     def reset(self, env):
         super().reset(env)
@@ -353,7 +356,7 @@ class PackingUnseenGoogleObjectsSeq(PackingSeenGoogleObjectsSeq):
         super().__init__()
 
     def get_object_names(self):
-        return {
+        object_names = {
             'train': [
                 'alarm clock',
                 'android toy',
@@ -436,6 +439,9 @@ class PackingUnseenGoogleObjectsSeq(PackingSeenGoogleObjectsSeq):
                 'yoshi figure'
             ],
         }
+        train, val, test = object_names['train'], object_names['val'], object_names['test']
+        all_objects = list(set(train) | set(val) | set(test))
+        return {'train': all_objects, 'val': all_objects, 'test': all_objects}
 
 
 class PackingSeenGoogleObjectsGroup(PackingSeenGoogleObjectsSeq):
@@ -485,7 +491,7 @@ class PackingUnseenGoogleObjectsGroup(PackingSeenGoogleObjectsGroup):
         super().__init__()
 
     def get_object_names(self):
-        return {
+        object_names = {
             'train': [
                 'alarm clock',
                 'android toy',
@@ -568,3 +574,6 @@ class PackingUnseenGoogleObjectsGroup(PackingSeenGoogleObjectsGroup):
                 'yoshi figure'
             ],
         }
+        train, val, test = object_names['train'], object_names['val'], object_names['test']
+        all_objects = list(set(train) | set(val) | set(test))
+        return {'train': all_objects, 'val': all_objects, 'test': all_objects}
