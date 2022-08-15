@@ -88,12 +88,12 @@ class RavensDataset(Dataset):
             field_path = os.path.join(self._path, field)
             if not os.path.exists(field_path):
                 os.makedirs(field_path)
-            fname = f'{self.n_episodes:06d}-{seed}.pkl'  # -{len(episode):06d}
+            fname = f'{self.n_episodes:06d}.pkl'  # -{len(episode):06d}
             with open(os.path.join(field_path, fname), 'wb') as f:
                 pickle.dump(data, f)
 
-        dump(color, 'color')
-        dump(depth, 'depth')
+        #dump(color, 'color')
+        #dump(depth, 'depth')
         dump(action, 'action')
         dump(reward, 'reward')
         dump(info, 'info')

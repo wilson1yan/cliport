@@ -1,6 +1,8 @@
 """Data collection script."""
 
+from tqdm import tqdm
 import os
+import os.path as osp
 import hydra
 import numpy as np
 import random
@@ -27,13 +29,14 @@ def main(cfg):
 
     # Initialize scripted oracle agent and dataset.
     agent = task.oracle(env)
-    data_path = os.path.join(cfg['data_dir'], "{}-{}".format(cfg['task'], task.mode))
-    dataset = RavensDataset(data_path, cfg, n_demos=0, augment=False)
-    print(f"Saving to: {data_path}")
+#    data_path = os.path.join(cfg['data_dir'], "{}-{}".format(cfg['task'], task.mode))
+    dataset = RavensDataset(cfg['data_dir'], cfg, n_demos=0, augment=False)
+    print(f"Saving to: {cfg['data_dir']}")
     print(f"Mode: {task.mode}")
 
     # Train seeds are even and val/test seeds are odd. Test seeds are offset by 10000
-    seed = dataset.max_seed
+    seed = dataset.max_seed + 100000 * int(osp.basename(cfg['data_dir']))
+    print('Seed', seed)
     if seed < 0:
         if task.mode == 'train':
             seed = -2
@@ -45,6 +48,7 @@ def main(cfg):
             raise Exception("Invalid mode. Valid options: train, val, test")
 
     # Collect training data from oracle demonstrations.
+    pbar = tqdm(total=cfg['n'])
     while dataset.n_episodes < cfg['n']:
         episode, total_reward = [], 0
         seed += 2
@@ -66,7 +70,7 @@ def main(cfg):
 
         # Start video recording (NOTE: super slow)
         if record:
-            env.start_rec(f'{dataset.n_episodes+1:06d}')
+            env.start_rec(f'{dataset.n_episodes:06d}')
 
         # Rollout expert policy
         for _ in range(task.max_steps):
@@ -76,6 +80,8 @@ def main(cfg):
             obs, reward, done, info = env.step(act)
             total_reward += reward
             print(f'Total Reward: {total_reward:.3f} | Done: {done} | Goal: {lang_goal}')
+            if reward > 0:
+                break
             if done:
                 break
         episode.append((obs, None, reward, info))
@@ -85,8 +91,9 @@ def main(cfg):
             env.end_rec()
 
         # Only save completed demonstrations.
-        if save_data and total_reward > 0.99:
+        if save_data and total_reward > 0:
             dataset.add(seed, episode)
+            pbar.update(1)
 
 
 if __name__ == '__main__':

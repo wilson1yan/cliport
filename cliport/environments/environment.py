@@ -247,7 +247,7 @@ class Environment(gym.Env):
         color, _, _ = self.render_camera(self.agent_cams[0])
         return color
 
-    def render_camera(self, config, image_size=None, shadow=1):
+    def render_camera(self, config, image_size=None, shadow=1, for_video=False):
         """Render RGB-D image with specified camera configuration."""
         if not image_size:
             image_size = config['image_size']
@@ -263,11 +263,17 @@ class Environment(gym.Env):
         focal_len = config['intrinsics'][0]
         znear, zfar = config['zrange']
         viewm = p.computeViewMatrix(config['position'], lookat, updir)
-        fovh = (image_size[0] / 2) / focal_len
+        if for_video:
+            fovh = (640 / 2) / focal_len
+        else:
+            fovh = (image_size[0] / 2) / focal_len
         fovh = 180 * np.arctan(fovh) * 2 / np.pi
 
         # Notes: 1) FOV is vertical FOV 2) aspect must be float
-        aspect_ratio = image_size[1] / image_size[0]
+        if for_video:
+            aspect_ratio = 720 / 640
+        else:
+            aspect_ratio = image_size[1] / image_size[0]
         projm = p.computeProjectionMatrixFOV(fovh, aspect_ratio, znear, zfar)
 
         # Render with OpenGL camera settings.
@@ -339,7 +345,7 @@ class Environment(gym.Env):
     def movej(self, targj, speed=0.01, timeout=5):
         """Move UR5 to target joint configuration."""
         if self.save_video:
-            timeout = timeout * 50
+            timeout = timeout * 2
 
         t0 = time.time()
         while (time.time() - t0) < timeout:
@@ -397,7 +403,7 @@ class Environment(gym.Env):
         # Render frame.
         config = self.agent_cams[0]
         image_size = (self.record_cfg['video_height'], self.record_cfg['video_width'])
-        color, depth, _ = self.render_camera(config, image_size, shadow=0)
+        color, depth, _ = self.render_camera(config, image_size, shadow=0, for_video=True)
         color = np.array(color)
 
         # Add language instruction to video.
